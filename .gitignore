@@ -1,0 +1,21 @@
+__pycache__/
+
+# Arquivos de treinamento
+tutorial
+experiments
+generate_dataset
+generate_dataset_fixed
+ppo_dataset
+model_pytorch
+wandb
+ppo_dataset
+.DS_Store
+*.zip
+*.pkl
+*.npy
+*.pyc
+*.pdf
+*.mp4
+*.png
+*.mp4
+*.pdf
