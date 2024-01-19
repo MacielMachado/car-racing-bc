@@ -1,5 +1,5 @@
 from data_precessing import DataHandler
-from model import Model, Model2
+from model import Model, Model_residual
 import numpy as np
 import wandb
 import torch
@@ -40,10 +40,10 @@ class Trainer():
         return y_diff_sqrt
 
     def run(self):
-        self.wandb_init()
+        # self.wandb_init()
         train_loader = self._dataloader()
         self._training_loop(train_loader)
-        wandb.finish()
+        # wandb.finish()
         # self._save_model(ep=self.n_epoch)
 
     def _save_model(self, ep):
@@ -69,10 +69,10 @@ class Trainer():
                 pbar.set_description(f"train loss: {loss.item()}")
 
                 # log metrics to wandb
-                wandb.log({"loss": loss.item(),
-                            "left_action_MSE": action_MSE[0],
-                            "acceleration_action_MSE": action_MSE[1],
-                            "right_action_MSE": action_MSE[2]})
+                # wandb.log({"loss": loss.item(),
+                #             "left_action_MSE": action_MSE[0],
+                #             "acceleration_action_MSE": action_MSE[1],
+                #             "right_action_MSE": action_MSE[2]})
                 
                 print(f'Epoch average loss: {loss_bin/iter}')
             if ep in [1, 10, 30, 50, 70, 90, 110, 130, 160, 190, 220, 249]:
@@ -112,10 +112,10 @@ if __name__ == '__main__':
     # obs = processor.load_data('tutorial_2/states_expert.npy').astype('float32')
     # actions = processor.load_data('tutorial_2/actions_expert.npy').astype('float32')
 
-    datasets = [r'Datasets/human/tutorial_human_expert_0_top_20/',
-                r'Datasets/human/tutorial_human_expert_1/',
+    datasets = [r'Datasets/human/tutorial_human_expert_1/',
                 r'Datasets/human/tutorial_human_expert_2/',
                 r'Datasets/ppo/tutorial_ppo_expert_66/',
+                r'Datasets/human/tutorial_human_expert_0_top_20/',
                 ]
     for dataset in datasets:
         obs = processor.load_data(dataset+'/states.npy').astype('float32')
@@ -124,7 +124,12 @@ if __name__ == '__main__':
         dataset_origin = dataset.split(os.sep)[1]
         obs = processor.preprocess_images(obs, dataset_origin)
 
-        model = Model()
+        model = Model_residual(x_shape=obs.shape[1:],
+                               n_hidden=128,
+                               y_dim=actions.shape[1],
+                               embed_dim=128,
+                               net_type='transformer',
+                               output_dim=1152)
         lr = 1e-4
         Trainer(obs,
                 actions,

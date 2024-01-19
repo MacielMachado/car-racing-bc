@@ -37,36 +37,10 @@ class Model(nn.Module):
 
         return x
 
-class Model2(nn.Module):
-    def __init__(self):
-        super().__init__()
-        self.conv_layer = nn.Sequential(
-            nn.Conv2d(in_channels=1,out_channels=32,kernel_size=8,stride=4),
-            nn.ReLU(),
-            nn.Conv2d(in_channels=32,out_channels=64,kernel_size=4,stride=2),
-            nn.ReLU()
-        )
-        self.linearlayers = nn.Sequential(
-            nn.Linear(in_features=6400,out_features=512),
-            nn.ReLU(),
-            nn.Linear(in_features=512,out_features=3)
-        )
 
-    def forward(self, x):
-        x = self.conv_layer(x)
-        x = x.view(x.size(0), -1)
-        x = self.linearlayers(x)
-
-        x[:,0] = torch.tanh(x[:,0])
-        x[:,1] = torch.sigmoid(x[:,1])
-        x[:,2] = torch.sigmoid(x[:,2])
-
-        return x
-
-
-class Model_cnn_mlp(nn.Module):
+class Model_residual(nn.Module):
     def __init__(self, x_shape, n_hidden, y_dim, embed_dim, net_type, output_dim=None):
-        super(Model_cnn_mlp, self).__init__()
+        super(Model_residual, self).__init__()
 
         self.x_shape = x_shape
         self.n_hidden = n_hidden
@@ -90,34 +64,25 @@ class Model_cnn_mlp(nn.Module):
             nn.MaxPool2d(2),
         )
         self.imageembed = nn.Sequential(nn.AvgPool2d(8))
+        
 
-        cnn_out_dim = self.n_feat * 2  # how many features after flattening -- WARNING, will have to adjust this for diff size input resolution
-        cnn_out_dim = 1152
+        self.output = nn.Linear(in_features=output_dim,
+                                out_features=3)
         # it is the flattened size after CNN layers, and average pooling
 
-    def forward(self, y, x, t, context_mask, x_embed=None):
-        # torch expects batch_size, channels, height, width
-        # but we feed in batch_size, height, width, channels
+    def forward(self, x):
+        x = self.embed_context(x)
 
-        if x_embed is None:
-            x_embed = self.embed_context(x)
-        else:
-            # otherwise, we already extracted x_embed
-            # e.g. outside of sampling loop
-            pass
-
-        return self.nn_downstream(y, x_embed, t, context_mask)
+        return x
 
     def embed_context(self, x):
         x = x.permute(0, 3, 2, 1)
         x1 = self.conv_down1(x)
         x3 = self.conv_down3(x1)  # [batch_size, 128, 35, 18]
-        # c3 is [batch size, 128, 4, 4]
         x_embed = self.imageembed(x3)
-        # c_embed is [batch size, 128, 1, 1]
         x_embed = x_embed.view(x.shape[0], -1)
-        # c_embed is now [batch size, 128]
-        return x_embed
+        x = self.output(x_embed)
+        return x
     
 
 class ResidualConvBlock(nn.Module):
