@@ -47,10 +47,10 @@ class Trainer():
         return y_diff_sqrt
 
     def run(self):
-        # self.wandb_init()
+        self.wandb_init()
         train_loader = self._dataloader()
         self._training_loop(train_loader)
-        # wandb.finish()
+        wandb.finish()
         # self._save_model(ep=self.n_epoch)
 
     def _save_model(self, ep):
