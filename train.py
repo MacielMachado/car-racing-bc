@@ -24,7 +24,7 @@ class Trainer():
     def wandb_init(self):
         wandb.init(
             project="OpenAI-Car-Racing-Article",
-            name=self.dataset.split(os.sep)[2],
+            name=self.model.__class__.__name__ + '___' + self.dataset.split(os.sep)[2],
             config={
                 "loss_func": 'MSE',
                 "batch_size": self.batch_size,
@@ -55,7 +55,7 @@ class Trainer():
 
     def _save_model(self, ep):
         os.makedirs(os.getcwd()+'/model_pytorch/'+self.dataset.split(os.sep)[1], exist_ok=True)
-        torch.save(self.model.state_dict(), os.getcwd()+'/model_pytorch/'+self.dataset.split(os.sep)[1]+'/'+self.dataset.split(os.sep)[2]+'_ep_'+f'{ep}'+'.pkl')
+        torch.save(self.model.state_dict(), os.getcwd()+'/model_pytorch/'+self.dataset.split(os.sep)[1]+'/'+self.dataset.split(os.sep)[2]+'_'+self.get_git_commit_hash()+'_ep_'+f'{ep}'+'.pkl')
 
     def _training_loop(self, train_loader):
         for ep in tqdm(range(self.n_epoch), desc="Epoch"):
@@ -76,10 +76,10 @@ class Trainer():
                 pbar.set_description(f"train loss: {loss.item()}")
 
                 # log metrics to wandb
-                # wandb.log({"loss": loss.item(),
-                #             "left_action_MSE": action_MSE[0],
-                #             "acceleration_action_MSE": action_MSE[1],
-                #             "right_action_MSE": action_MSE[2]})
+                wandb.log({"loss": loss.item(),
+                            "left_action_MSE": action_MSE[0],
+                            "acceleration_action_MSE": action_MSE[1],
+                            "right_action_MSE": action_MSE[2]})
                 
                 print(f'Epoch average loss: {loss_bin/iter}')
             if ep in [1, 10, 30, 50, 70, 90, 110, 130, 160, 190, 220, 249]:
