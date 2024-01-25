@@ -1,7 +1,7 @@
 from torch import nn
 import torch
 
-class Model(nn.Module):
+class Model_original(nn.Module):
     def __init__(self, input_ch=4, ch=8):
         super().__init__()
         self.conv_layer = nn.Sequential(

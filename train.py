@@ -1,10 +1,11 @@
 from data_precessing import DataHandler
-from model import Model, Model_residual
+from model import Model_original, Model_residual
 import numpy as np
 import wandb
 import torch
 from tqdm import tqdm
 import os
+import git
 
 class Trainer():
     def __init__(self, X_train, y_train, X_valid, y_valid, model, optimizer, loss_func, device="cpu", batch_size=64, dataset=''):
@@ -27,9 +28,15 @@ class Trainer():
             config={
                 "loss_func": 'MSE',
                 "batch_size": self.batch_size,
-                "dataset": self.dataset
+                "dataset": self.dataset,
+                "model": self.model.__class__.__name__,
+                "commit_hash": self.get_git_commit_hash()
             }
         )
+
+    def get_git_commit_hash(self):
+        repo = git.Repo(search_parent_directories=True)
+        return repo.head.object.hexsha
 
     def extract_action_MSE(self, y, y_hat):
         assert len(y) == len(y_hat)
@@ -114,8 +121,7 @@ if __name__ == '__main__':
 
     datasets = [r'Datasets/human/tutorial_human_expert_1/',
                 r'Datasets/human/tutorial_human_expert_2/',
-                r'Datasets/ppo/tutorial_ppo_expert_66/',
-                r'Datasets/human/tutorial_human_expert_0_top_20/',
+                r'Datasets/ppo/tutorial_ppo_expert_68/',
                 ]
     for dataset in datasets:
         obs = processor.load_data(dataset+'/states.npy').astype('float32')

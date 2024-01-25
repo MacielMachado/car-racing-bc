@@ -1,7 +1,7 @@
 from car_racing_interface import CarRacingInterface
 from cart_racing import CarRacing
 from data_precessing import DataHandler
-from model import Model, Model2
+from model import Model_original, Model2
 import numpy as np
 import torch
 import time
@@ -84,7 +84,7 @@ class Tester():
         plt.close()
 
 if __name__ == '__main__':
-    model = Model()
+    model = Model_original()
     model_path = './model_pytorch/ppo/'
     episodes = [90, 70, 50, 30, 10, 1]
     for ep in episodes:
