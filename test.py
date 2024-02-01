@@ -1,7 +1,7 @@
 from car_racing_interface import CarRacingInterface
 from cart_racing import CarRacing
 from data_precessing import DataHandler
-from model import Model_original, Model2
+from model import Model_original, Model_residual
 import numpy as np
 import torch
 import time
@@ -22,7 +22,7 @@ class Tester():
         # np.random.seed(3) # 1
         episode = 0
         reward_list = []  
-        while episode < 20:
+        while episode < 100:
             reward = 0
             obs_orig = self.env.reset()
             tempo_inicial = time.time()
@@ -74,7 +74,7 @@ class Tester():
         plt.subplot()
         plt.scatter(range(len(reward_list)), reward_list)
         plt.axhline(y=900, color='r', linestyle='--', linewidth=2)
-        plt.title(f"Reward Scatter {name} - Mean: {sum(reward_list)/len(reward_list):.2f}")
+        plt.title(f"Reward Scatter {name}\nMean: {sum(reward_list)/len(reward_list):.2f} - Std. Dev: {np.std(reward_list):.2f}")
         plt.ylabel("Reward")
         plt.xlabel("Episode")
         plt.grid()
@@ -84,14 +84,20 @@ class Tester():
         plt.close()
 
 if __name__ == '__main__':
-    model = Model_original()
-    model_path = './model_pytorch/ppo/'
-    episodes = [90, 70, 50, 30, 10, 1]
+    model = Model_residual(x_shape=(96, 96, 4),
+                           n_hidden=128,
+                           y_dim=3,
+                           embed_dim=128,
+                           net_type='transformer',
+                           output_dim=1152)
+    model_path = './model_pytorch/human/'
+    episodes = [1, 10, 30, 50, 70, 90, 110, 130, 160, 190, 220, 249]
     for ep in episodes:
-        # version = model_path + 'model_stacked_900_plus_ep_'+f'{ep}'+'.pkl'
-        version = model_path + 'model_ppo_68_ep_130.pkl'
+        version = model_path + 'tutorial_human_expert_1_21e78c675f45e4e4e8002b794ce055c84de0d099_ep_'+f'{ep}'+'.pkl'
+        # version = model_path + 'tutorial_human_expert_1_21e78c675f45e4e4e8002b794ce055c84de0d099_ep_1.pkl'
         model.load_state_dict(torch.load(version))
         env = CarRacing()
-        Tester(model=model,env=env).run(save=False,
-                                        time_in_s=1*60*60,
-                                        name='model_stacked')
+        Tester(model=model,env=env, render=False).run(
+            save=False,
+            time_in_s=1*60*60,
+            name='tutorial_human_expert_2_21e78c675f45e4e4e8002b794ce055c84de0d099_ep_'+f'{ep}')

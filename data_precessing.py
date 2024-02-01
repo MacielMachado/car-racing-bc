@@ -112,6 +112,9 @@ class DataHandler():
         if origin == 'human':
             return self.__preprocess_human_images(images_array)
         raise NotImplementedError
+    
+    def cut_to_84(self, obs):
+        return obs[:84, :84]
 
 
 class ResultsAnalyzer():

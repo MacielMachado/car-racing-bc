@@ -119,10 +119,11 @@ if __name__ == '__main__':
     # obs = processor.load_data('tutorial_2/states_expert.npy').astype('float32')
     # actions = processor.load_data('tutorial_2/actions_expert.npy').astype('float32')
 
-    datasets = [r'Datasets/human/tutorial_human_expert_1/',
-                r'Datasets/human/tutorial_human_expert_2/',
-                r'Datasets/ppo/tutorial_ppo_expert_68/',
-                ]
+    # datasets = [r'Datasets/human/tutorial_human_expert_1/',
+    #             r'Datasets/human/tutorial_human_expert_2/',
+    #             r'Datasets/ppo/tutorial_ppo_expert_68/',
+    #             ]
+    datasets = [r'Datasets/ppo/tutorial_ppo_expert_68/',]
     for dataset in datasets:
         obs = processor.load_data(dataset+'/states.npy').astype('float32')
         actions = processor.load_data(dataset+'/actions.npy').astype('float32')
@@ -135,7 +136,7 @@ if __name__ == '__main__':
                                y_dim=actions.shape[1],
                                embed_dim=128,
                                net_type='transformer',
-                               output_dim=1152)
+                               output_dim=512)
         lr = 1e-4
         Trainer(obs,
                 actions,
