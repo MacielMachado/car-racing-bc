@@ -9,7 +9,7 @@ import os
 import matplotlib.pyplot as plt
 
 class Tester():
-    def __init__(self, model, env, render=True, device="mps"):
+    def __init__(self, model, env, render=True, device="mps", origin="human"):
         self.path = os.getcwd() + '/experiments/'
         self.device = device
         self.render = render
@@ -17,6 +17,7 @@ class Tester():
         self.env = env
         self.observations = []
         self.actions = []
+        self.origin = origin
 
     def run(self, save, time_in_s=1e100, name=''):
         # np.random.seed(3) # 1
@@ -31,6 +32,8 @@ class Tester():
                 self.model.eval()
                 obs = DataHandler().to_greyscale(obs_orig)
                 obs = DataHandler().normalizing(obs)
+                if self.origin == 'ppo':
+                    obs = DataHandler().cut_to_84(obs)
                 obs = DataHandler().stack_with_previous(np.expand_dims(obs, axis=0))
                 obs_tensor = torch.from_numpy(obs).float().to(self.device)
                 action = self.model(obs_tensor).to("cpu")
@@ -84,20 +87,24 @@ class Tester():
         plt.close()
 
 if __name__ == '__main__':
-    model = Model_residual(x_shape=(96, 96, 4),
+    model_path = './model_pytorch/ppo/'
+    origin = model_path.split(os.sep)[-2]
+    x_shape = (84, 84, 4) if origin is 'ppo' else (96, 96, 4)
+    model = Model_residual(x_shape=(84, 84, 4),
                            n_hidden=128,
                            y_dim=3,
                            embed_dim=128,
                            net_type='transformer',
-                           output_dim=1152)
-    model_path = './model_pytorch/human/'
+                           output_dim=512)
     episodes = [1, 10, 30, 50, 70, 90, 110, 130, 160, 190, 220, 249]
     for ep in episodes:
-        version = model_path + 'tutorial_human_expert_1_21e78c675f45e4e4e8002b794ce055c84de0d099_ep_'+f'{ep}'+'.pkl'
+        version = model_path + 'tutorial_ppo_expert_68_05ad5f069d630c70bedb21f9e3ebccdad4279dd8_ep_'+f'{ep}'+'.pkl'
         # version = model_path + 'tutorial_human_expert_1_21e78c675f45e4e4e8002b794ce055c84de0d099_ep_1.pkl'
         model.load_state_dict(torch.load(version))
         env = CarRacing()
-        Tester(model=model,env=env, render=False).run(
+        Tester(
+            model=model,env=env, render=False).run(
             save=False,
             time_in_s=1*60*60,
-            name='tutorial_human_expert_2_21e78c675f45e4e4e8002b794ce055c84de0d099_ep_'+f'{ep}')
+            name='tutorial_ppo_expert_68_05ad5f069d630c70bedb21f9e3ebccdad4279dd8_ep_'+f'{ep}',
+            origin=origin)
